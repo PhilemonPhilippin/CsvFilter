@@ -20,7 +20,7 @@ internal static class CsvService
             WriteCsv(guestsParsed, kvp.Key);
         }
     }
-    private static IEnumerable<Guest> ReadCsv(string filePath)
+    private static List<Guest> ReadCsv(string filePath)
     {
         using var reader = new StreamReader(filePath);
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -34,7 +34,7 @@ internal static class CsvService
 
     private static List<GuestParsed> ParseGuestList(IEnumerable<Guest> guests)
     {
-        List<GuestParsed> guestsParsed = new();
+        List<GuestParsed> guestsParsed = [];
         string ouiResterInforme = "Oui";
 
         HashSet<string> emails = [];
@@ -58,7 +58,7 @@ internal static class CsvService
         return guestsParsed;
     }
 
-    private static void WriteCsv(List<GuestParsed> guestParseds, string fileName)
+    private static void WriteCsv(List<GuestParsed> guestsParsed, string fileName)
     {
         string projectPath = Path.GetFullPath("../../..");
 
@@ -67,9 +67,10 @@ internal static class CsvService
 
         string processedFolderPath = Path.Combine(filesFolderPath, "processed");
 
+        // Creates a directory if it doesn't exist.
         Directory.CreateDirectory(processedFolderPath);
 
-        // Adding a prefix for the names of the parsed files.
+        // Adding a prefix for the name of the parsed file.
         fileName = string.Concat("Parsed - ", fileName);
         string csvPath = Path.Combine(processedFolderPath, fileName);
 
@@ -80,7 +81,7 @@ internal static class CsvService
         };
         using var csv = new CsvWriter(writer, config);
 
-        csv.WriteRecords(guestParseds);
+        csv.WriteRecords(guestsParsed);
     }
 
     // Returns a Dictionary with fileName as Key and filePath as Value.
@@ -88,7 +89,7 @@ internal static class CsvService
     {
         string projectPath = Path.GetFullPath("../../..");
 
-        // Suppose there is a path to *project*/files/toProcess/*myFile*.csv
+        // Suppose there is a path to *project*/files/toProcess/*filename*.csv
         string folderPath = Path.Combine(projectPath, "files", "toProcess");
 
         string[] filePaths = Directory.GetFiles(folderPath);
@@ -100,7 +101,7 @@ internal static class CsvService
             fileNames.Add(fileName);
         }
 
-        Dictionary<string, string> files = new();
+        Dictionary<string, string> files = [];
         for (int i = 0; i < filePaths.Length; i++)
         {
             files.Add(fileNames[i], filePaths[i]);
