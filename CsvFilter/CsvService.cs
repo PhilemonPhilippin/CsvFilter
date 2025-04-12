@@ -9,9 +9,9 @@ internal static class CsvService
     public static void FilterCsvFiles()
     {
         // Gets a dictionary with fileName as Key and filePath as Value.
-        Dictionary<string, string> files = GetFilePaths();
+        Dictionary<string, string> files = GetFiles();
 
-        if (files.Any() == false)
+        if (files.Count <= 0)
             return;
 
         foreach (KeyValuePair<string, string> kvp in files)
@@ -28,31 +28,33 @@ internal static class CsvService
             Delimiter = "\t"
         };
         using var csv = new CsvReader(reader, config);
+
         return csv.GetRecords<Guest>().ToList();
     }
 
-    private static List<GuestParsed> ParseGuestList(IEnumerable<Guest> records)
+    private static List<GuestParsed> ParseGuestList(IEnumerable<Guest> guests)
     {
         List<GuestParsed> guestsParsed = new();
         string ouiResterInforme = "Oui";
 
         HashSet<string> emails = [];
 
-        foreach (Guest record in records)
+        foreach (Guest guest in guests)
         {
-            if (emails.Contains(record.Email) == false && record.ResterInforme == ouiResterInforme)
+            if (emails.Contains(guest.Email) == false && guest.ResterInforme == ouiResterInforme)
             {
-                emails.Add(record.Email);
+                emails.Add(guest.Email);
                 guestsParsed.Add(new GuestParsed
                 {
-                    GuestFirstName = record.GuestFirstName,
-                    GuestLastName = record.GuestLastName,
-                    Email = record.Email,
-                    TelephoneMobile = record.TelephoneMobile,
-                    ResterInforme = record.ResterInforme
+                    GuestFirstName = guest.GuestFirstName,
+                    GuestLastName = guest.GuestLastName,
+                    Email = guest.Email,
+                    TelephoneMobile = guest.TelephoneMobile,
+                    ResterInforme = guest.ResterInforme
                 });
             }
         }
+
         return guestsParsed;
     }
 
@@ -60,29 +62,35 @@ internal static class CsvService
     {
         string projectPath = Path.GetFullPath("../../..");
 
-        // Suppose there is a path to *project*/files/processed
-        string folderPath = Path.Combine(projectPath, "files", "processed");
-        
+        // Suppose there is a path to *project*/files/
+        string filesFolderPath = Path.Combine(projectPath, "files");
+
+        string processedFolderPath = Path.Combine(filesFolderPath, "processed");
+
+        Directory.CreateDirectory(processedFolderPath);
+
+        // Adding a prefix for the names of the parsed files.
         fileName = string.Concat("Parsed - ", fileName);
-        string csvPath = Path.Combine(folderPath, fileName);
+        string csvPath = Path.Combine(processedFolderPath, fileName);
 
         using var writer = new StreamWriter(csvPath);
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             Delimiter = "\t"
         };
-
         using var csv = new CsvWriter(writer, config);
+
         csv.WriteRecords(guestParseds);
     }
 
     // Returns a Dictionary with fileName as Key and filePath as Value.
-    private static Dictionary<string, string> GetFilePaths()
+    private static Dictionary<string, string> GetFiles()
     {
         string projectPath = Path.GetFullPath("../../..");
 
         // Suppose there is a path to *project*/files/toProcess/*myFile*.csv
         string folderPath = Path.Combine(projectPath, "files", "toProcess");
+
         string[] filePaths = Directory.GetFiles(folderPath);
         List<string> fileNames = [];
         foreach (string filePath in filePaths)
