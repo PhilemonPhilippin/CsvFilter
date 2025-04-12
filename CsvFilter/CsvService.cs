@@ -6,13 +6,18 @@ namespace CsvFilter;
 
 internal static class CsvService
 {
-    public static void ReadCsv()
+
+    public static void FilterCsvFiles()
     {
-        List<GuestParsed> guestsParsed = new();
-        string ouiResterInforme = "Oui";
+        var guestsParsed = ParseGuestList(ReadCsv());
+        Console.WriteLine(guestsParsed.Count);
+        WriteCsv(guestsParsed);
+    }
+    private static IEnumerable<Guest> ReadCsv()
+    {
         string projectPath = Path.GetFullPath("../../..");
 
-        // Suppose there is a path to *project*/files/toProcess/
+        // Suppose there is a path to *project*/files/toProcess/*myFile*.csv
         string folderPath = Path.Combine(projectPath, "files", "toProcess");
         string csvPath = Path.Combine(folderPath, "Guest list 7-minutes-comite-dusine-2025-03-21-20-15 2025-04-11.csv");
 
@@ -22,8 +27,15 @@ internal static class CsvService
             Delimiter = "\t"
         };
         using var csv = new CsvReader(reader, config);
-        var records = csv.GetRecords<Guest>();
-        HashSet<string> emails = new();
+        return csv.GetRecords<Guest>().ToList();
+    }
+
+    private static List<GuestParsed> ParseGuestList(IEnumerable<Guest> records)
+    {
+        List<GuestParsed> guestsParsed = new();
+        string ouiResterInforme = "Oui";
+
+        HashSet<string> emails = [];
 
         foreach (var record in records)
         {
@@ -40,6 +52,24 @@ internal static class CsvService
                 });
             }
         }
-        Console.WriteLine(guestsParsed.Count);
+        return guestsParsed;
+    }
+
+    private static void WriteCsv(List<GuestParsed> guestParseds)
+    {
+        string projectPath = Path.GetFullPath("../../..");
+
+        // Suppose there is a path to *project*/files/processed
+        string folderPath = Path.Combine(projectPath, "files", "processed");
+        string csvPath = Path.Combine(folderPath, "1.csv");
+
+        using var writer = new StreamWriter(csvPath);
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            Delimiter = "\t"
+        };
+
+        using var csv = new CsvWriter(writer, config);
+        csv.WriteRecords(guestParseds);
     }
 }

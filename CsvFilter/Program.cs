@@ -1,4 +1,4 @@
 ﻿using CsvFilter;
 
 Console.WriteLine("Hello, World!");
-CsvService.ReadCsv();
+CsvService.FilterCsvFiles();
