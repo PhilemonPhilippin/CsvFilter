@@ -96,7 +96,7 @@ internal static class CsvService
         List<string> fileNames = [];
         foreach (string filePath in filePaths)
         {
-            int indexOfLastSlash = filePath.LastIndexOf("\\");
+            int indexOfLastSlash = filePath.LastIndexOf('\\');
             string fileName = filePath.Substring(indexOfLastSlash + 1);
             fileNames.Add(fileName);
         }
